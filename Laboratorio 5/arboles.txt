@@ -1,0 +1,138 @@
+                    ARBOLES (generales)
+
+    Ejemplo 1:
+        Estructura de la forma
+                  raiz (en la raiz no hay informacion)
+                /      \    |
+               /\      /\   |->   rama(de la raiz a la hoja)
+              1 14    /\ 0   -> hoja
+                    21 2 
+
+
+        Modelo en haskell:
+
+            data B where  {
+                N:: B->B->B ;
+                H:: Int -> B
+            }
+
+        Polimorfico: 
+
+            data B a where  {
+                N:: Ba->Ba->Ba ;
+                H:: a -> Ba
+            }
+
+    Ejemplo 2:
+        Con informacion en los nodos internos:
+
+                    (14)
+                    /  \
+                  (1) (19)
+                      /  \
+                    (4) (39)
+
+        Modelo en haskell: 
+
+            data AB where {
+                R:: Int -> AB -> AB -> AB;
+                V:: AB 
+            }
+
+            R 14 (
+              R 1 V V
+              R 19(
+                   (R 4  V V)
+                   (R 39 V V)
+                  )
+              ) 
+
+        Polimorfico: 
+
+            data AB a where  {
+                R:: a->ABa->ABa->ABa ;
+                v:: ABa
+            }
+
+        Delacracion haskell:
+
+            data B a = N(Ba) (Ba)
+                       | H a
+
+    Ejemplo 3:
+        Expresiones booleanas
+        (True & False) | (false &(N True))
+                    (|)
+                    /  \
+                  (&)   (&)
+                  / \   /  \
+                 T   F F   (N)
+                             \
+                              T
+        
+
+        Modelo en haskell: 
+
+            data ExpBool where {
+                (:|):: ExpBool -> ExpBool ->  ExpBool;
+                (:&):: ExpBool -> ExpBool ->  ExpBool;
+                 N  :: ExpBool -> ExpBool;
+                 K  :: Bool -> ExpBool  
+            }
+
+            (K True :& K False) :| (K False :& N( K True ))
+            
+        Modelo en haskell: (otra opcion)
+
+            data ExpBool' where {
+                Bin :: OpBin -> ExpBool' -> ExpBool' ->  ExpBool';
+                 N  :: ExpBool' -> ExpBool';
+                 K  :: Bool -> ExpBool'
+            }
+
+            data OpBin whhere {
+                O :: OpBin;
+                Y :: OpBin
+            }
+
+            Bin O (Bin Y (K True) (K False))
+                  (Bin Y (K False) (N(K True)))
+
+
+    data B a where  {
+        N:: Ba->Ba->Ba ;
+        H:: a -> Ba
+    }
+
+    cant_hojas :: Ba -> Int
+    cant_hojas = \t case t of {
+        H _   ->  1 (o es una hoja con su valor)
+        N l r ->  cant_hojas l + cant_hojas r (o es un nodo, que tiene un un arbol izquierdo y derecho)
+    }
+
+    cant_nodos :: Ba -> Int
+    cant_nodos = \t case t of {
+        H _   ->  0 (o es una hoja con su valor En este caso esta con "_" porque no me importa su valor)
+        N l r ->  1 + cant_hojas l + cant_hojas r (o es un nodo, que tiene un un arbol izquierdo y derecho)
+    }
+
+    
+=============================================================================== 
+        Induccion en arboles del tipo (Ba)
+
+            Sea P una propiedad de arboles del tipo (Ba)
+                Caso H: H) x::a
+                        T) P(H x)
+                
+                Caso N: H) P(l), P(r)
+                        T) P(N l r)      (Sea l left, r rigth)
+
+        Entonces (∀ t⇓::Ba) P t
+
+
+    Ejercicio: Demostrar que (∀ t⇓::Ba) cant_hojas t = 1+cant_nodos t
+                Caso H: H) x::a
+                        T) P(H x)
+
+                Caso N: H) P(l), P(r)
+                        T) P(N l r)   

@@ -1,0 +1,255 @@
+Listas.
+[11,24,213]::[Int]
+Objecto       Tipo
+
+
+[True,True,....]::[Bool]
+
+Una lista puede tener repetidos y su orden es relevante.
+
+[False, True]
+=/
+[True, False]
+
+
+Se puede tener lista de cualquier cosa, incluso funciones.
+
+[S,\n. case b of {o->om, Sx-> x}]::[N->N]
+
+Lista de listas:
+
+                [[1,0],[],[4,5,6]]::[[Int]]
+
+
+Asi define en HS.
+
+                data[a] = []
+                        | (:) a->[a]->[a]
+
+                11:(24:(213:[]))
+                    =
+                11:24:23:[]
+                    =
+                [11,24,213]
+
+Las listas siempre toman un elemento primero (head) seguido de una lista (tail),
+por eso en la defincion de una lista siempre tiene que aparecer la lista vacia 
+en algun punto.
+
+Como trabajar con las listas:
+
+                case l of {
+                    [] -> ...;
+                    x:xs -> ...
+                }
+
+Ejemplo: determinar si una lista es vacia o no, 
+                null::[a]->Bool
+                null = \l -> case l of {
+                    [] -> True;
+                    x:xs -> False
+                }
+
+Largo de una lista:
+
+
+                largo::[a]->N
+                largo = \l -> case l of {
+                    [] -> O;
+                    x:xs -> S(largo xs)
+                }
+
+*Si algun valor no esta siendo en uso, se recomienda usar "_":
+
+
+                largo::[a]->N
+                largo = \l -> case l of {
+                    [] -> O;
+                    _:xs -> S(largo xs)
+                }
+
+
+
+
+Algunas listas tienen funcion parcial.
+Por Ejemplo head:: [a] -> a, esta funcion devuelve el primer elemento de la lista,
+pero si la lista es vacia no funciona.
+
+Entonces tengo que usar una precondicion:
+                head::[a]-> a
+                -- pre on hd l : l != []
+
+        1)        head = \l case l of {
+                    x:sx -> x
+                }
+
+         2)       head = \l case l of {
+                    [] -> error "Head de lista vacia";
+                    x:sx -> x
+                }
+        3)      head = \l pre(not(null l)) "Head en lista vacia"
+                        (case l of {x:_ -> x})
+
+
+        ================Induccion en N================
+
+Si demostramos
+    Caso 0): (T) P0             (Caso base "partida")
+    Caso S: (H) sea x⇓::N tal que Px     |Paso inductivo, la propiedad 
+            (T) P(S X)                   |  es hereditaria (se propaga)
+
+    Entonces podemos concluir 
+    (∀n⇓:: N)P n
+
+        ================Induccion en listas================
+
+Sea P una propiedad de listas ([a])
+
+Si demostramos:
+    Caso [] : (T) P []                              "[] tambien llamado nil"
+    Caso :  : (H) Sea x⇓::a y xs⇓::[a] tal que Pxs  ": tambiem llamado Cons"
+              (T) P(x:xs)
+
+
+Ejemplo:
+   Consideremos la funcion
+
+   reverse:: [a] -> [a] 
+   reverse=\l case l of {
+        []->[];
+        x:sx -> reverse sx ++ [x]
+   } (++):: [a] -> [a] (++)=\l case l of { []->[]; x:sx -> x:(sx++l) } Lema 0 de reverse: a) reverse [] = [] b) reverse (x:xs) = reverse xs ++ [x] c) reverse [x] = [x] Lema 1 
+    reverse(l1++l2) = reverse l2 ++ reverse l1
+
+Lema ++
+    a) []++l=l
+    b) (x:xs) ++ l = x:(xs++l)
+    c) l++[]=l
+
+Ejemplo:
+    Proposicion (∀ xs⇓::[a]) reverse(server xs) = xs
+    Demostracion: Por Induccion en xs⇓:: [a]
+
+        Caso []: (T) reverse (reverse []) = []
+                D: reverse(reverse [])
+                = por lema 0(a)
+                reverse []
+                = por lema 0 (a)
+                []
+
+        Caso (:): (H) sea x::a y xs::[a] / reverse (reverse xs) = xs
+                 (T) reverse(reverse(x:xs)) = x:xs
+
+                    D: reverse(reverse(x:xs)) = x:xs
+                    = por lema 0 (b)
+                    reverse (reverse xs ++ [x])
+                    = lema 1
+                    reverse [x] ++ reverse(reverse xs)
+                    = Por H
+                    reverse [x] ++ xs
+                    = por lema 0 (c)
+                    [x] ++ xs
+                    = lema de ++
+                    x:xs
+
+
+
+        Proposicion (∀ L1 ⇓::[a])(∀ L2 ⇓::[a]) reverse (L1++L2) = reverse L2 ++ reverse L1
+    Demostracion: Por induccion en L1⇓:: [a]
+
+        Caso []:  (T) (∀ L2 ⇓::[a]) reverse ([]++L2) = reverse L2++ reverse []
+                    D: Tomemos un L2 ⇓::[a] fija arbitraria
+                    reverse ([]++L2)
+                    = Lema ++ (a)
+                    reverse L2
+
+                    Por otro lado:
+                    reverse L2 ++ reverse []
+                    = lema 0 de revese (a)
+                    reverse L2 ++ []
+                    = lema ++ c
+                    reverse L2
+
+        Caso (:) (H) Sea x::[a] y xs::[a] / (∀ L2 ⇓::[a]) reverse (xs++L2) = reverse L2 ++ reverse xs
+                 (T) (∀ L2 ⇓::[a]) revese ((x:xs) ++ L2) = reverse L2 ++ reverse (x:xs) 
+                    D: Tomemos L2 ⇓:: [a] fija arbitraria
+                    reverse ((x:xs)++L2)
+                    =lema ++(b)
+                    reverse(x:(xs++L2))
+                    =lema 0 b
+                    reverse (xs++L2)++[x]
+                    = por H
+                    (reverse L2 ++ reverse xs) ++ [x]
+                    = Asociatividad de ++     (LEMA PENDIENTE)
+                    reverse L2 ++ (reverse xs ++ [x])
+                    =lema 0 (b)
+                    reverse L2 ++ reverse (x:xs)
+
+
+==============================================================
+
+
+            Primer caso:
+
+    Un esquema de "recursion primitiva"
+
+    f::[a] -> alfa
+    f = \l case l of {
+            [] -> c;          {-siendo c una constante-}
+            x:xs -> h x(f xs) {-siendo h una funcion generica +,*,etc}
+        }
+
+            Segundo paso:
+
+    Definir el esquema "dentro del lenguaje" como una funcion:
+
+    foldr:: (a->b->b) -> b -> [a] -> b
+    foldr = \h c l -> case l of {
+            [] -> c;
+            x:xs -> h x (foldr xs)
+    }
+
+    entonces =>
+
+    sum = foldr (+) 0
+
+    prod = foldr (*) 1
+
+    reverse = foldr (\x \r ++ [x]) []
+
+    concat = foldr (++) []
+
+    sum [1,2,3] = foldl (+) 0 [1,2,3]
+                = 1 + foldl (+) 0 [2,3]
+                = 1 + (2 + foldl (+) 3 [3])
+                = 1 + (2 + (3 + foldl (+) 0 []))
+                = 6
+
+
+Ejercicio: programar foldr
+
+    foldl = \x c l case l of {
+        [] -> c;
+        x:xs -> foldl h (h c x) xs    {-(h c x) es mi neva c que voy a llamar en la
+                                        recursion de forma de mantener el valor actualizado de c -}
+    }
+
+
+    sum = foldl (+) 0
+    sum [1,2,3] = foldl (+) 0 [1,2,3]
+                = foldl (+) 1 [2,3]
+                = foldl (+) 3 [3]
+                = foldl (+) 6
+
+
+
+
+TUPLAS:
+
+(5,Junio,2017)::(Int,Mes,Int)
+
+Asi define en HS.
+
+data (a,b) = (_,_) :: a->b->(a,b)
+
+("Jose",37) = (String,Int)
